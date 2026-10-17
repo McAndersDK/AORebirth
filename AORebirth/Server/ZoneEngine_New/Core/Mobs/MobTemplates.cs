@@ -69,6 +69,9 @@ namespace ZoneEngine_New.Core.Mobs
         /// <summary>NPCs it fights on its own (see <see cref="NpcDefenseService"/>).</summary>
         public NpcDefenseDefinition? Defense { get; set; }
 
+        /// <summary>Waits to be rescued (see <see cref="NpcRescueService"/>).</summary>
+        public NpcRescueDefinition? Rescue { get; set; }
+
         /// <summary>SCFU texture overrides keyed by place. Empty omits the texture block.</summary>
         public Dictionary<int, int> Textures { get; set; } = new();
 

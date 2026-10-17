@@ -254,8 +254,30 @@ namespace ZoneEngine_New.Core.Playfield
                     _spawnRate));
         }
 
-        /// <summary>A spawn point this close to a standalone shop is the shop's own statel point.</summary>
-        const float ShopReplacesPointRadius = 0.5f;
+        /// <summary>
+        /// A content prop that names this point's hash (ReplacesHash) and stands on it is the statel the point spawns
+        /// in retail (the Arete Cargo Box, its Gas Fires): the prop replaces it, and the point spawns nothing itself.
+        /// </summary>
+        static bool ReplacedByProp(PlayfieldSpawnEntry entry, IReadOnlyList<ZoneEngine_New.Core.Missions.QuestPropDefinition> props)
+        {
+            if (entry.Position == null || entry.Position.Length < 3)
+                return false;
+
+            for (int i = 0; i < props.Count; i++)
+            {
+                if (!string.Equals(props[i].ReplacesHash, entry.HashText, StringComparison.Ordinal))
+                    continue;
+
+                float[] at = props[i].Position;
+                float dx = at[0] - entry.Position[0], dy = at[1] - entry.Position[1], dz = at[2] - entry.Position[2];
+                if (dx * dx + dz * dz <= PropReplacesPointRadius * PropReplacesPointRadius && Math.Abs(dy) <= 3f)
+                    return true;
+            }
+
+            return false;
+        }
+
+        const float PropReplacesPointRadius = 0.5f;
 
         static bool UnderShop(PlayfieldSpawnEntry entry, float[][] shops)
         {
@@ -264,7 +286,7 @@ namespace ZoneEngine_New.Core.Playfield
             foreach (float[] at in shops)
             {
                 float dx = at[0] - entry.Position[0], dy = at[1] - entry.Position[1], dz = at[2] - entry.Position[2];
-                if (dx * dx + dz * dz <= ShopReplacesPointRadius * ShopReplacesPointRadius && Math.Abs(dy) <= 3f)
+                if (dx * dx + dz * dz <= PropReplacesPointRadius * PropReplacesPointRadius && Math.Abs(dy) <= 3f)
                     return true;
             }
 
@@ -276,6 +298,8 @@ namespace ZoneEngine_New.Core.Playfield
             PlayfieldSpawnsData data = _gameData.GetPlayfieldSpawns(_playfield.Identity.Instance);
             PlayfieldSpawnEntry[] entries = data.Spawns ?? [];
             int skipped = 0;
+            IReadOnlyList<ZoneEngine_New.Core.Missions.QuestPropDefinition> props =
+                _playfield.GetRequiredService<ZoneEngine_New.Core.Missions.QuestPropService>().Definitions;
             // A placed content NPC that stands in for a hash (Marcus Stone for MUSN) replaces all its points here.
             var content = _gameData.GetPlayfieldNpcs(_playfield.Identity.Instance);
             var placedHashes = new HashSet<string>(
@@ -308,7 +332,7 @@ namespace ZoneEngine_New.Core.Playfield
                     continue;
                 }
 
-                if (placedHashes.Contains(spawnHash) || UnderShop(entry, shops))
+                if (ReplacedByProp(entry, props) || placedHashes.Contains(spawnHash) || UnderShop(entry, shops))
                 {
                     skipped++;
                     continue;

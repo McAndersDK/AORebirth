@@ -374,6 +374,7 @@ namespace ZoneEngine_New.Core.GameData
                 MonsterWeapons = new List<string>(nearest.MonsterWeapons ?? new List<string>()),
                 CombatWeapons = CopyPairs(nearest.CombatWeapons),
                 Defense = nearest.Defense,
+                Rescue = nearest.Rescue,
                 TextureOverrides = new List<TextureOverride>(nearest.TextureOverrides),
                 CorpseFullUpdateTemplate = CopyCorpseFullUpdateTemplate(nearest.CorpseFullUpdateTemplate),
                 KnuBotId = nearest.KnuBotId,
@@ -596,6 +597,9 @@ namespace ZoneEngine_New.Core.GameData
 
         /// <summary>NPCs it fights on its own (town guards that help a chased player).</summary>
         public Mobs.NpcDefenseDefinition? Defense { get; set; }
+
+        /// <summary>Waits to be rescued: pose, partial health, moans, the item that rescues it (Wounded Dockworkers).</summary>
+        public Mobs.NpcRescueDefinition? Rescue { get; set; }
 
         /// <summary>Material texture overrides sent on the spawn packet (SCFU extended textures).</summary>
         public List<TextureOverride> TextureOverrides { get; set; } = new();

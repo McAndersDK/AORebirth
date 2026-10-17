@@ -177,6 +177,7 @@ namespace ZoneEngine_New.Core.Playfield
                 SpawnHash = spawnHash ?? template.Hash,
                 Attackable = !template.Has(NpcFeature.NoCombat),
                 Defense = template.Defense,
+                Rescue = template.Rescue,
                 Position = at,
                 Rotation = heading ?? new Quaternion(),
                 SpawnSource = spawnSource
@@ -229,7 +230,11 @@ namespace ZoneEngine_New.Core.Playfield
             if (attachDefaultBrain && (npc.Attackable || npc.Defense != null || template.Patrol != null))
                 NpcBrain.Create(npc, new Vector3(at.x, at.y, at.z), NpcAiProfiles.Resolve(template.Hash));
 
-            // Anything the first spawn packet has to carry (a pet's PetMaster) goes on before it is registered.
+            // Anything the first spawn packet has to carry (a pet's PetMaster, a wounded NPC's pose) goes on before it
+            // is registered.
+            Mobs.NpcRescueService.Prepare(npc);
+            if (_playfield.GetService<Missions.QuestPropService>()?.IsGuard(npc) == true)
+                npc.AttacksOnSight = false;
             configure?.Invoke(npc);
             // A captured patrol beats a district's random wander: live NPCs of this kind walked these waypoints.
             if (template.Patrol != null)
@@ -241,6 +246,7 @@ namespace ZoneEngine_New.Core.Playfield
             else if (!_registry.TryRegister(npc))
                 throw new InvalidOperationException("The accepted NPC identity is already registered.");
             _playfield.GetRequiredService<PlayfieldLocality>().RegisterDynel(npc);
+            _playfield.GetRequiredService<Mobs.NpcRescueService>().Track(npc);
 
             Metrics.TickStallWatch.Stage("spawn.log", identity.Instance);
             _logger.Info(
@@ -1019,20 +1025,6 @@ namespace ZoneEngine_New.Core.Playfield
             // The client lists its pets once it has zoned in (or reconnected).
             if (player.OwnedPets.Count > 0)
                 _playfield.GetRequiredService<Pets.PetService>().AnnounceOwnedPets(player);
-
-            try
-            {
-                _playfieldManager.AuthoredQuests.Restore(player);
-            }
-            catch (Exception ex)
-            {
-                _logger.Error(
-                    ex,
-                    string.Format(
-                        CultureInfo.InvariantCulture,
-                        "Authored quest restore failed character={0}; continuing with world visibility",
-                        player.Identity.Instance));
-            }
 
             try
             {

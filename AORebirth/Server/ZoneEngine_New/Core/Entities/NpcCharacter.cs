@@ -62,6 +62,14 @@ namespace ZoneEngine_New.Core.Entities
         /// <summary>Fights other NPCs on its own (see <see cref="Mobs.NpcDefenseService"/>); null for everyone else.</summary>
         public Mobs.NpcDefenseDefinition? Defense { get; set; }
 
+        /// <summary>Waits to be rescued (see <see cref="Mobs.NpcRescueService"/>); null for everyone else.</summary>
+        public Mobs.NpcRescueDefinition? Rescue { get; set; }
+
+        /// <summary>No passive health and nano regeneration while set (a wounded NPC waiting for its rescue).</summary>
+        public bool RegenHeld { get; set; }
+
+        protected override bool UsesPassiveRegen => !RegenHeld;
+
         /// <summary>
         /// The NPC's body cannot move: its MonsterData Features (stat 224, copied on at spawn) lack
         /// <see cref="GameData.MonsterBodyFeatures.CanMove"/>. It never paths, wanders or chases, and fights from where it
@@ -626,7 +634,7 @@ namespace ZoneEngine_New.Core.Entities
             return false;
         }
 
-        static bool TryDecodeAoHash(int packed, out string hash)
+        internal static bool TryDecodeAoHash(int packed, out string hash)
         {
             char a = (char)((packed >> 24) & 0xFF);
             char b = (char)((packed >> 16) & 0xFF);
