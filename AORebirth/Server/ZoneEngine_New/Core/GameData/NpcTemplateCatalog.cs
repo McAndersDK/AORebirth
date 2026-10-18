@@ -371,6 +371,7 @@ namespace ZoneEngine_New.Core.GameData
                 MaxLevel = max,
                 UnresolvedPlaceholder = isFallback,
                 Equipment = CopyPairs(nearest.Equipment),
+                CombatWeapons = CopyPairs(nearest.CombatWeapons),
                 TextureOverrides = new List<TextureOverride>(nearest.TextureOverrides),
                 CorpseFullUpdateTemplate = CopyCorpseFullUpdateTemplate(nearest.CorpseFullUpdateTemplate),
                 KnuBotId = nearest.KnuBotId,
@@ -581,6 +582,9 @@ namespace ZoneEngine_New.Core.GameData
         public int KnuBotId { get; set; }
 
         public List<List<int>> Equipment { get; set; } = new();
+
+        /// <summary>Weapon items [low, high] armed as attack cycles as they are, for weapons with no monster weapon hash.</summary>
+        public List<List<int>> CombatWeapons { get; set; } = new();
 
         /// <summary>Material texture overrides sent on the spawn packet (SCFU extended textures).</summary>
         public List<TextureOverride> TextureOverrides { get; set; } = new();

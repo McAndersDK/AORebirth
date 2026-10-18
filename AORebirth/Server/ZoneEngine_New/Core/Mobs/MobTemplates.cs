@@ -60,6 +60,9 @@ namespace ZoneEngine_New.Core.Mobs
         /// <summary>Per-slot AOID lists from the template Equipment jagged array.</summary>
         public List<List<int>> Equipment { get; set; } = new();
 
+        /// <summary>Weapon items [low, high] armed as attack cycles as they are.</summary>
+        public List<List<int>> CombatWeapons { get; set; } = new();
+
         /// <summary>SCFU texture overrides keyed by place. Empty omits the texture block.</summary>
         public Dictionary<int, int> Textures { get; set; } = new();
 

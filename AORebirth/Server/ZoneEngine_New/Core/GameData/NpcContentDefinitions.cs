@@ -26,6 +26,8 @@ public sealed class WorldNpcDefinition
     public bool TickLiving { get; set; } = true;
     public WorldNpcPresentation Presentation { get; set; } = new();
     public WorldVendorDefinition? Vendor { get; set; }
+    /// <summary>Weapon items [low, high] it fights with, minted at its level (needs Passive false).</summary>
+    public List<List<int>> CombatWeapons { get; set; } = new();
 }
 
 public sealed class WorldStandaloneShopDefinition

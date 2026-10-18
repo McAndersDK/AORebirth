@@ -364,6 +364,16 @@ namespace ZoneEngine_New.Core.Entities
                 TickStallWatch.Stage("equip.weapon", lowId);
                 TryExpandMonsterWeapon(gameData, item, quality, logger);
             }
+
+            foreach (List<int> pair in template.CombatWeapons)
+            {
+                if (pair == null || pair.Count < 1 || pair[0] <= 0)
+                    continue;
+
+                int highId = pair.Count >= 2 && pair[1] > 0 ? pair[1] : pair[0];
+                if (!TryAddEquipment(_items.CreateWithNewInstance(pair[0], highId, quality, ItemSource.Other), logger, combatWeapon: true))
+                    return;
+            }
         }
 
         /// <summary>Equipment items named "Boss Modifier Item (…)" are alternatives: each spawn keeps one at random.</summary>
@@ -439,6 +449,17 @@ namespace ZoneEngine_New.Core.Entities
         {
             ArgumentNullException.ThrowIfNull(weapon);
             return TryAddEquipment(weapon, logger, combatWeapon: true);
+        }
+
+        /// <summary>
+        /// Wears a weapon in the hand (not an attack cycle): the combat weapon's hits are then shown as this weapon's
+        /// swing, right-hand slot 6 with instance 0, as live sends for humanoid NPCs (Marcus Stone, Dockworkers).
+        /// Call <see cref="RebaseWeapons"/> afterwards.
+        /// </summary>
+        internal bool EquipVisualWeapon(Item weapon, IZoneLogger? logger = null)
+        {
+            ArgumentNullException.ThrowIfNull(weapon);
+            return TryAddEquipment(weapon, logger);
         }
 
         bool TryAddEquipment(Item item, IZoneLogger? logger, bool combatWeapon = false, string? sawHash = null)
