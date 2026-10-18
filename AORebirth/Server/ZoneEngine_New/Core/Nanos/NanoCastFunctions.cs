@@ -1,6 +1,7 @@
 namespace ZoneEngine_New.Core.Nanos
 {
     using System;
+    using System.Collections.Generic;
     using System.Threading;
 
     using AORebirth.Enums;
@@ -53,6 +54,7 @@ namespace ZoneEngine_New.Core.Nanos
                 return ((FunctionType)spell.FunctionType) switch
                 {
                     FunctionType.CastNano => CastNano(caster, target, spell, items, inventory, nowUtc, scripted),
+                    FunctionType.CastNano2 => CastNano2(caster, target, spell, items, inventory, nowUtc, scripted),
                     FunctionType.CastNanoIfPossible => CastNanoIfPossible(caster, target, spell, items, inventory, nowUtc),
                     FunctionType.NpcCastNanoIfPossible => CastNanoIfPossible(caster, target, spell, items, inventory, nowUtc),
                     FunctionType.CastNanoIfPossibleOnFightTarget => CastNanoOnFightTarget(caster, spell, items, inventory, nowUtc),
@@ -83,6 +85,47 @@ namespace ZoneEngine_New.Core.Nanos
                 return false;
 
             return NanoRuntime.TryApplyImmediate(caster, target, nanoId, items, inventory, nowUtc, gmApply: scripted);
+        }
+
+        /// <summary>
+        /// CastNano2 [nano]: casts the nano; a running copy is replaced by one that lasts the nano's ExtendedTime (ms),
+        /// without the old copy's OnTerminate. Henri Zure 297257 OnEnter: CastNano2 Call to Arms 297247 on the Omni-AF
+        /// Private that brought the player; live recast it at 18.7 s and its end area-cast Resolve 2PZ7 at 28.5 s
+        /// (ExtendedTime 10000), completing Arrest Henri Zure.
+        /// </summary>
+        static bool CastNano2(
+            Character caster,
+            Character target,
+            ItemSpell spell,
+            IItemBuilder items,
+            IInventoryRepository inventory,
+            DateTime nowUtc,
+            bool scripted)
+        {
+            if (!spell.TryReadInt(0, out int nanoId) || nanoId <= 0)
+                return false;
+
+            bool running = false;
+            foreach (Buff buff in target.Buffs)
+                running |= buff.Id == nanoId;
+
+            ItemTemplate template = items.CreateTemplate(nanoId, nanoId, quality: 1);
+            if (template.Id != nanoId)
+                return false;
+            if (running && template.Stats.TryGetValue(CharacterStat.ExtendedTime, out int extendedMs) && extendedMs > 0)
+                template = new RetimedNano(template, Math.Max(1, extendedMs / 10));
+
+            return NanoRuntime.TryApplyImmediate(caster, target, NanoSpell.From(template), items, inventory, nowUtc, gmApply: scripted);
+        }
+
+        /// <summary>A nano template with its own TimeExist (centiseconds): the copy CastNano2 lands over a running one.</summary>
+        sealed class RetimedNano : ItemTemplate
+        {
+            public RetimedNano(ItemTemplate template, int centiseconds)
+                : base(template)
+            {
+                Stats = new Dictionary<CharacterStat, int>(template.Stats) { [CharacterStat.TimeExist] = centiseconds };
+            }
         }
 
         /// <summary>

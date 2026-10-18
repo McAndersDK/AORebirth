@@ -106,6 +106,7 @@ namespace ZoneEngine_New.Core.Inventory
                 case FunctionType.UploadNano:
                     return target is Player uploadPlayer && UploadNano(uploadPlayer, spell);
                 case FunctionType.CastNano:
+                case FunctionType.CastNano2:
                 case FunctionType.AreaCastNano:
                 case FunctionType.TeamCastNano:
                 case FunctionType.PlayfieldNano:
@@ -151,7 +152,7 @@ namespace ZoneEngine_New.Core.Inventory
                 case FunctionType.ReduceNanoStrainDuration:
                     return ReduceNanoStrainDuration(target, spell);
                 case FunctionType.CharmNpc:
-                    return CharmNpc(templateId, target, source, sourceTemplate);
+                    return CharmNpc(templateId, target, source, sourceTemplate) || CharmToFollow(target, source, templateId);
                 case FunctionType.RemoveBuffs:
                     return NanoRuntime.StripAllBuffs(target);
                 case FunctionType.SpawnItem:
@@ -793,6 +794,26 @@ namespace ZoneEngine_New.Core.Inventory
         /// </summary>
         static bool NamesNpc(ItemSpell spell)
             => spell.Requirements.Exists(r => r.Operator == (int)Operator.IsNpcHash);
+
+        /// <summary>
+        /// CharmNpc on an NPC that cannot become a pet (not attackable, or no brain): it only follows the user while the
+        /// nano that charmed it runs (Call to Arms 297247: the NoCombat Omni-AF Private follows the player who used the
+        /// OTAF Official Notice on it).
+        /// </summary>
+        static bool CharmToFollow(Character target, Character? source, int nanoId)
+        {
+            if (target is not NpcCharacter npc || (npc.Attackable && npc.Brain != null) || npc.IsDead || source == null
+                || ReferenceEquals(source, npc) || source.IsDead || !ReferenceEquals(source.Playfield, npc.Playfield))
+                return false;
+
+            // A NoCombat NPC that only stands at its post has no brain to follow with: it gets one, at home on that
+            // post, so it walks back once the charm ends.
+            NpcBrain brain = npc.Brain ?? NpcBrain.Create(npc, npc.Position, NpcAiProfiles.Resolve(npc.SpawnHash));
+            brain.Charm(source, nanoId);
+            npc.Playfield?.GetService<Mobs.NpcEventService>()?.OnNanoEvent(npc, nanoId, Mobs.NpcEventDefinition.Charmed,
+                source as Player);
+            return true;
+        }
 
         /// <summary>
         /// SolveQuest [hash]: completes the user's active quest of that hash (or template alias) as an NPC turn-in does.
