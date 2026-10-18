@@ -221,12 +221,16 @@ namespace ZoneEngine_New.Core.Playfield
             Metrics.TickStallWatch.Stage("spawn.rebase", identity.Instance);
             npc.Rebase();
             TryAttachShop(npc);
-            // Vendors fight back like any NPC; only NoCombat (blue-named or flagged) NPCs stay brainless.
-            if (attachDefaultBrain && npc.Attackable)
+            // Vendors fight back like any NPC; only NoCombat (blue-named or flagged) NPCs stay brainless. One with a
+            // captured patrol (Lolly the Reet, an Omni-AF Private) gets a brain to walk it; without hate it never fights.
+            if (attachDefaultBrain && (npc.Attackable || template.Patrol != null))
                 NpcBrain.Create(npc, new Vector3(at.x, at.y, at.z), NpcAiProfiles.Resolve(template.Hash));
 
             // Anything the first spawn packet has to carry (a pet's PetMaster) goes on before it is registered.
             configure?.Invoke(npc);
+            // A captured patrol beats a district's random wander: live NPCs of this kind walked these waypoints.
+            if (template.Patrol != null)
+                npc.Brain?.EnablePatrol(template.Patrol);
 
             Metrics.TickStallWatch.Stage("spawn.register", identity.Instance);
             if (fixedIdentity == null)

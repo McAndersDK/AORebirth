@@ -374,7 +374,8 @@ namespace ZoneEngine_New.Core.GameData
                 TextureOverrides = new List<TextureOverride>(nearest.TextureOverrides),
                 CorpseFullUpdateTemplate = CopyCorpseFullUpdateTemplate(nearest.CorpseFullUpdateTemplate),
                 KnuBotId = nearest.KnuBotId,
-                ItemTable = CopyLoot(nearest.LootTable)
+                ItemTable = CopyLoot(nearest.LootTable),
+                Patrol = nearest.Patrol
             };
         }
 
@@ -589,6 +590,8 @@ namespace ZoneEngine_New.Core.GameData
 
         [JsonPropertyName("LootTable")]
         public List<MobItemTableEntry> LootTable { get; set; } = new();
+
+        public Mobs.NpcPatrol? Patrol { get; set; }
     }
 
     public sealed class NpcLeaf
