@@ -24,26 +24,23 @@ namespace ZoneEngine_New.Core.MessageHandlers
     {
         private readonly IInventoryRepository _inventoryRepository;
         private readonly IItemBuilder _items;
-        private readonly AuthoredQuestService _quests;
+        private readonly Quests.QuestService? _quests;
         private readonly Quests.Dungeons.QuestDungeonService? _dungeons;
         private readonly Tradeskills.TradeskillService? _tradeskills;
         private readonly ItemPackageService? _packages;
-        private readonly Quests.QuestService? _questService;
 
         public GenericCmdMessageHandler(IInventoryRepository inventoryRepository, IItemBuilder items,
-            AuthoredQuestService quests, Quests.Dungeons.QuestDungeonService? dungeons = null,
-            Tradeskills.TradeskillService? tradeskills = null, ItemPackageService? packages = null,
-            Quests.QuestService? questService = null)
+            Quests.QuestService? quests = null, Quests.Dungeons.QuestDungeonService? dungeons = null,
+            Tradeskills.TradeskillService? tradeskills = null, ItemPackageService? packages = null)
         {
             _dungeons = dungeons;
             _tradeskills = tradeskills;
             _packages = packages;
-            _questService = questService;
             ArgumentNullException.ThrowIfNull(inventoryRepository);
             ArgumentNullException.ThrowIfNull(items);
             _inventoryRepository = inventoryRepository;
             _items = items;
-            _quests = quests ?? throw new ArgumentNullException(nameof(quests));
+            _quests = quests;
         }
 
         public Type MessageBodyType => typeof(GenericCmdMessage);
@@ -289,15 +286,6 @@ namespace ZoneEngine_New.Core.MessageHandlers
                 return;
             }
 
-            if (_quests.IsAuthoredItem(item))
-            {
-                if (_quests.TryUseItem(player, target, item))
-                    Acknowledge(session, message, target);
-                else if (!player.IsPersistenceQuarantined && session.State == SessionState.InPlay)
-                    Deny(session, message, player, "authored item use was not committed");
-                return;
-            }
-
             if (_packages?.IsPackage(item) == true)
             {
                 if (_packages.TryOpen(player, target, item))
@@ -308,9 +296,9 @@ namespace ZoneEngine_New.Core.MessageHandlers
             }
 
             // An item that starts a quest (the DOJA chip) is kept; the player hears why when it cannot start now.
-            if (_questService != null && ItemBehaviorContent.Current.FindQuestStarter(item) is { } starter)
+            if (_quests != null && ItemBehaviorContent.Current.FindQuestStarter(item) is { } starter)
             {
-                bool started = _questService.TryStartFromItem(player, starter.Quest, out string? why);
+                bool started = _quests.TryStartFromItem(player, starter.Quest, out string? why);
                 if (why != null)
                     ClientFeedback.SendFormatted(player, ClientFeedback.PlainText, why);
                 if (started)

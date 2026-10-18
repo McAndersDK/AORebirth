@@ -990,20 +990,6 @@ namespace ZoneEngine_New.Core.Playfield
 
             try
             {
-                _playfieldManager.AuthoredQuests.Restore(player);
-            }
-            catch (Exception ex)
-            {
-                _logger.Error(
-                    ex,
-                    string.Format(
-                        CultureInfo.InvariantCulture,
-                        "Authored quest restore failed character={0}; continuing with world visibility",
-                        player.Identity.Instance));
-            }
-
-            try
-            {
                 _playfield.GetService<Quests.QuestService>()?.Restore(player);
             }
             catch (Exception ex)
