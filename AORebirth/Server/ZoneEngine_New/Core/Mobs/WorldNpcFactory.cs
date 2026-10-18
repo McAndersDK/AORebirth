@@ -32,6 +32,7 @@ public static class WorldNpcFactory
         foreach (var stat in definition.Stats) npc.Stats.Set((CharacterStat)stat.Key, stat.Value);
         foreach (var texture in definition.Textures) npc.SetSpawnTexture(texture.Place, texture.Id);
         foreach (var mesh in definition.Meshes) npc.AddSpawnMesh(Clone(mesh));
+        npc.Defense = definition.Defense;
         npc.Motor.RefreshFromStats();
         return npc;
     }

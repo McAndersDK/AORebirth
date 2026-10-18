@@ -371,6 +371,7 @@ namespace ZoneEngine_New.Core.GameData
                 MaxLevel = max,
                 UnresolvedPlaceholder = isFallback,
                 Equipment = CopyPairs(nearest.Equipment),
+                Defense = nearest.Defense,
                 TextureOverrides = new List<TextureOverride>(nearest.TextureOverrides),
                 CorpseFullUpdateTemplate = CopyCorpseFullUpdateTemplate(nearest.CorpseFullUpdateTemplate),
                 KnuBotId = nearest.KnuBotId,
@@ -581,6 +582,9 @@ namespace ZoneEngine_New.Core.GameData
         public int KnuBotId { get; set; }
 
         public List<List<int>> Equipment { get; set; } = new();
+
+        /// <summary>NPCs it fights on its own (town guards that help a chased player).</summary>
+        public Mobs.NpcDefenseDefinition? Defense { get; set; }
 
         /// <summary>Material texture overrides sent on the spawn packet (SCFU extended textures).</summary>
         public List<TextureOverride> TextureOverrides { get; set; } = new();

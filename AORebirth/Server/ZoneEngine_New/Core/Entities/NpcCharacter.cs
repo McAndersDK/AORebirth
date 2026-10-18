@@ -53,6 +53,9 @@ namespace ZoneEngine_New.Core.Entities
         /// </summary>
         public bool Attackable { get; set; } = true;
 
+        /// <summary>Fights other NPCs on its own (see <see cref="Mobs.NpcDefenseService"/>); null for everyone else.</summary>
+        public Mobs.NpcDefenseDefinition? Defense { get; set; }
+
         /// <summary>
         /// The NPC's body cannot move: its MonsterData Features (stat 224, copied on at spawn) lack
         /// <see cref="GameData.MonsterBodyFeatures.CanMove"/>. It never paths, wanders or chases, and fights from where it

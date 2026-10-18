@@ -51,6 +51,10 @@ internal sealed class NpcContentActivationService(Playfield playfield, DynelRegi
                 Bind(npc, new(definition.Key, definition.Provenance, definition.ContentNpcIdentity, definition.PlayfieldId, definition.Vendor != null));
                 npc.Died += OnDied;
                 if (npc.Shop != null) npc.Shop.Playfield = playfield;
+                // A placed defender (Marcus Stone) needs a brain to walk to, face and swing at what it fights, and to
+                // go home after; its BreedHostility stays 0, so it never picks a fight with a player.
+                if (definition.Defense != null && !definition.Passive && npc.Brain == null)
+                    ZoneEngine_New.Core.Ai.NpcBrain.Create(npc, new AORebirth.Core.Vector.Vector3(npc.Position.x, npc.Position.y, npc.Position.z));
                 locality.RegisterDynel(npc);
                 _activated.Add(definition.Key);
             }

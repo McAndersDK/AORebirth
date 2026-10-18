@@ -4,6 +4,7 @@ namespace ZoneEngine_New.Core.Playfield
     using System.Collections.Generic;
     using System.Globalization;
     using System.IO;
+    using System.Linq;
     using System.Text.Json;
 
     using AORebirth.Core.GameData;
@@ -258,6 +259,12 @@ namespace ZoneEngine_New.Core.Playfield
             PlayfieldSpawnsData data = _gameData.GetPlayfieldSpawns(_playfield.Identity.Instance);
             PlayfieldSpawnEntry[] entries = data.Spawns ?? [];
             int skipped = 0;
+            // A placed content NPC that stands in for a hash (Marcus Stone for MUSN) replaces all its points here.
+            var placedHashes = new HashSet<string>(
+                _gameData.GetPlayfieldNpcs(_playfield.Identity.Instance).Npcs
+                    .Where(npc => !string.IsNullOrEmpty(npc.ReplacesHash))
+                    .Select(npc => npc.ReplacesHash),
+                StringComparer.Ordinal);
 
             foreach (PlayfieldSpawnEntry entry in entries)
             {
@@ -275,6 +282,12 @@ namespace ZoneEngine_New.Core.Playfield
 
                 string? hashText = entry.HashText;
                 if (string.IsNullOrEmpty(hashText))
+                {
+                    skipped++;
+                    continue;
+                }
+
+                if (placedHashes.Contains(spawnHash))
                 {
                     skipped++;
                     continue;

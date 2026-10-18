@@ -176,6 +176,7 @@ namespace ZoneEngine_New.Core.Playfield
                 MobTemplate = template,
                 SpawnHash = spawnHash ?? template.Hash,
                 Attackable = !template.Has(NpcFeature.NoCombat),
+                Defense = template.Defense,
                 Position = at,
                 Rotation = heading ?? new Quaternion(),
                 SpawnSource = spawnSource
@@ -221,8 +222,9 @@ namespace ZoneEngine_New.Core.Playfield
             Metrics.TickStallWatch.Stage("spawn.rebase", identity.Instance);
             npc.Rebase();
             TryAttachShop(npc);
-            // Vendors fight back like any NPC; only NoCombat (blue-named or flagged) NPCs stay brainless.
-            if (attachDefaultBrain && npc.Attackable)
+            // Vendors fight back like any NPC; only NoCombat (blue-named or flagged) NPCs stay brainless. A blue-named
+            // defender (a town guard) still needs a brain to chase what it fights; without hate it never fights.
+            if (attachDefaultBrain && (npc.Attackable || npc.Defense != null))
                 NpcBrain.Create(npc, new Vector3(at.x, at.y, at.z), NpcAiProfiles.Resolve(template.Hash));
 
             // Anything the first spawn packet has to carry (a pet's PetMaster) goes on before it is registered.

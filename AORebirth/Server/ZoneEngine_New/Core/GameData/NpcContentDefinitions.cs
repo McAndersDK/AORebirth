@@ -26,6 +26,10 @@ public sealed class WorldNpcDefinition
     public bool TickLiving { get; set; } = true;
     public WorldNpcPresentation Presentation { get; set; } = new();
     public WorldVendorDefinition? Vendor { get; set; }
+    /// <summary>Spawn hash this placed NPC stands in for: that hash's points on the playfield spawn nothing.</summary>
+    public string ReplacesHash { get; set; } = string.Empty;
+    /// <summary>NPCs it fights on its own (Marcus Stone and the Burning Cleaning Robots).</summary>
+    public ZoneEngine_New.Core.Mobs.NpcDefenseDefinition? Defense { get; set; }
 }
 
 public sealed class WorldStandaloneShopDefinition
