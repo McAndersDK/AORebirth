@@ -218,6 +218,7 @@ namespace ZoneEngine_New.Core.Playfield
                 includeWield: true,
                 _items,
                 _playfield.GetRequiredService<IInventoryRepository>());
+            ApplySpawnNanos(npc, template);
             Metrics.TickStallWatch.Stage("spawn.rebase", identity.Instance);
             npc.Rebase();
             TryAttachShop(npc);
@@ -249,6 +250,39 @@ namespace ZoneEngine_New.Core.Playfield
                     position.zf));
 
             return npc;
+        }
+
+        /// <summary>How long a spawn nano lasts: longer than any NPC lives, and inside the client's centisecond timer.</summary>
+        static readonly TimeSpan SpawnNanoLifetime = TimeSpan.FromDays(7);
+
+        /// <summary>
+        /// The template's spawn nanos as running buffs (live: a boss's SimpleCharFullUpdate already lists Increase size by
+        /// 40, a glow and a damage type). Before the first rebase, so their effects are in the spawn stats and packet.
+        /// </summary>
+        void ApplySpawnNanos(NpcCharacter npc, MobTemplate template)
+        {
+            if (template.Nanos is not { Count: > 0 } nanos)
+                return;
+
+            DateTime expires = DateTime.UtcNow + SpawnNanoLifetime;
+            for (int i = 0; i < nanos.Count; i++)
+            {
+                Nanos.NanoSpell spell;
+                try
+                {
+                    spell = Nanos.NanoSpell.From(_items.CreateTemplate(nanos[i], nanos[i], quality: 1));
+                }
+                catch (Exception exception)
+                {
+                    _logger.Warn(string.Format(CultureInfo.InvariantCulture,
+                        "Spawn nano {0} for {1} ({2}) is not in items.dat: {3}", nanos[i], template.Name, template.Hash, exception.Message));
+                    continue;
+                }
+
+                if (npc.TryRestoreBuff(spell, npc.Identity, i + 1, expires) == null)
+                    _logger.Warn(string.Format(CultureInfo.InvariantCulture,
+                        "Spawn nano {0} for {1} ({2}) did not land (not a buff, or already running)", nanos[i], template.Name, template.Hash));
+            }
         }
 
         /// <summary>

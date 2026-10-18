@@ -374,7 +374,8 @@ namespace ZoneEngine_New.Core.GameData
                 TextureOverrides = new List<TextureOverride>(nearest.TextureOverrides),
                 CorpseFullUpdateTemplate = CopyCorpseFullUpdateTemplate(nearest.CorpseFullUpdateTemplate),
                 KnuBotId = nearest.KnuBotId,
-                ItemTable = CopyLoot(nearest.LootTable)
+                ItemTable = CopyLoot(nearest.LootTable),
+                Nanos = new List<int>(nearest.Nanos ?? new List<int>())
             };
         }
 
@@ -589,6 +590,9 @@ namespace ZoneEngine_New.Core.GameData
 
         [JsonPropertyName("LootTable")]
         public List<MobItemTableEntry> LootTable { get; set; } = new();
+
+        /// <summary>Nano programs running on it from spawn (live SimpleCharFullUpdate ActiveNanos: boss size/glow).</summary>
+        public List<int> Nanos { get; set; } = new();
     }
 
     public sealed class NpcLeaf

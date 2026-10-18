@@ -73,6 +73,9 @@ namespace ZoneEngine_New.Core.Mobs
 
         public List<MobItemTableEntry> ItemTable { get; set; } = new();
 
+        /// <summary>Nano programs running on it from the moment it spawns (bosses: size, glow, damage type).</summary>
+        public List<int> Nanos { get; set; } = new();
+
         public string BinaryListData { get; set; } = string.Empty;
 
         public JsonElement? BinaryList { get; set; }
